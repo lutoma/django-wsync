@@ -39,7 +39,7 @@ release = '0.2'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',
+#    'sphinx.ext.autodoc',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
@@ -100,8 +100,16 @@ html_static_path = ['_static']
 # default: ``['localtoc.html', 'relations.html', 'sourcelink.html',
 # 'searchbox.html']``.
 #
-# html_sidebars = {}
 
+html_sidebars = {
+    '**': [
+        'about.html',
+        'navigation.html',
+        'relations.html',
+        'searchbox.html',
+        'donate.html',
+    ]
+}
 
 # -- Options for HTMLHelp output ---------------------------------------------
 
@@ -114,7 +122,7 @@ htmlhelp_basename = 'django-wsyncdoc'
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #
-    # 'papersize': 'letterpaper',
+    'papersize': 'a4paper',
 
     # The font size ('10pt', '11pt' or '12pt').
     #
@@ -161,6 +169,15 @@ texinfo_documents = [
 
 
 # -- Extension configuration -------------------------------------------------
+
+html_theme_options = {
+#    'logo': 'logo.png',
+    'github_user': 'lutoma',
+    'github_repo': 'django-wsync',
+    'github_type': 'star',
+    'description': '⚡ Easy real-time updates using WebSockets for Django/JavaScript projects',
+}
+
 
 # -- Options for todo extension ----------------------------------------------
 

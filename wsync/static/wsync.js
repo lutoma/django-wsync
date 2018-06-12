@@ -6,7 +6,7 @@ window.wsync = {
 	reconnect_attempt: 0,
 
 	cmd(cmd, data = null) {
-		let id = this.uuid++;
+		let id = this.uuid++
 		let promise = new Promise((resolve, reject) => {
 			this.listeners[id] = (message) => {
 				delete this.listeners[id]
@@ -19,7 +19,7 @@ window.wsync = {
 			}
 		})
 
-		let message = JSON.stringify({cmd, data, id: id});
+		let message = JSON.stringify({cmd, data, id})
 		this.socket.send(message)
 		return promise
 	},
@@ -58,7 +58,7 @@ window.wsync = {
 				this.socket.close()
 			}
 
-			this.socket = new WebSocket("ws://127.0.0.1:8000/wsync/");
+			this.socket = new WebSocket("ws://127.0.0.1:8000/wsync/")
 			this.socket.addEventListener('open', (event) => {
 				console.debug('wsync: Connection established')
 				//this.$store.commit('API_CONNECT')

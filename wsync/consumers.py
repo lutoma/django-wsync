@@ -12,6 +12,8 @@ class WSyncConsumer(JsonWebsocketConsumer):
 	user = None
 
 	def reply(self, msg_id, data=None, error=None):
+		"""Simple wrapper to send a JSON reply in the correct format."""
+
 		self.send_json({'id': msg_id, 'error': error, 'data': data})
 
 	def stream(self, models):
@@ -32,15 +34,21 @@ class WSyncConsumer(JsonWebsocketConsumer):
 		self.stream([sender])
 
 	def connect(self):
+		"""Handles new client connections."""
+
 		self.accept()
 		self.start_sync()
 
 	def disconnect(self, close_code):
+		"""Handles client disconnects and removes all Django signals we have registered."""
+
 		for model in sync_models.keys():
 			post_save.disconnect(self.stream_callback, sender=model)
 			post_delete.disconnect(self.stream_callback, sender=model)
 
 	def start_sync(self):
+		"""Starts synchronization of models and sends initial stream to client."""
+
 		for model in sync_models.keys():
 			post_save.connect(self.stream_callback, sender=model, weak=False)
 			post_delete.connect(self.stream_callback, sender=model, weak=False)
@@ -48,9 +56,7 @@ class WSyncConsumer(JsonWebsocketConsumer):
 		self.stream(sync_models.keys())
 
 	def login(self, msg_id, data):
-		'''
-		Login to obtain a new token
-		'''
+		"""Login to obtain a new token."""
 		if not data or not ('username' in data and 'password' in data):
 			self.error(msg_id, 'Missing fields')
 			return

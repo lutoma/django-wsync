@@ -20,7 +20,7 @@ In your Django settings.py, add django-wsync and Django Channels to the installe
 	]
 
 
-and also configure the ASGI application for Channels::
+and also configure the `ASGI <https://github.com/django/asgiref/blob/master/specs/asgi.rst>`_ application for Channels::
 
 	ASGI_APPLICATION = 'wsync.routing.application'
 
@@ -46,3 +46,5 @@ On the JavaScript side of things, all you need to do is load ``wsync.js`` and in
 	</script>
 
 The JavaScript library will take care of the nitty-gritty details like WebSocket handling and reconnections.
+
+Congratulations, you have successfully installed django-wsync 🎉. Next, have a look at `Getting Started <getting-started.html>`_ to see what you can do with it!

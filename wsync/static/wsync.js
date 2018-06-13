@@ -42,15 +42,6 @@ window.wsync = {
 		}
 	},
 
-	tokenAuth() {
-		this.cmd('auth', {'token': this.$store.state.api.token}).then((data) => {
-			console.debug('wsync: Reauthenticated using token')
-		}).catch(() => {
-			console.debug('wsync: Token invalid')
-			this.$store.commit('SET_TOKEN', null)
-		})
-	},
-
 	connect() {
 		return new Promise((resolve, reject) => {
 			// Reconnections
@@ -61,12 +52,6 @@ window.wsync = {
 			this.socket = new WebSocket("ws://127.0.0.1:8000/wsync/")
 			this.socket.addEventListener('open', (event) => {
 				console.debug('wsync: Connection established')
-				//this.$store.commit('API_CONNECT')
-
-				//if(this.$store.state.api.token) {
-				//	this.tokenAuth()
-				//}
-
 				resolve(event)
 			})
 
@@ -86,16 +71,4 @@ window.wsync = {
 			console.debug('wsync: Connection lost')
 		}
 	},
-
-	// Nuxt.js-specific stuff
-	install(Vue, store, inject) {
-		this.$store = store
-		this.connect()
-		inject('api', this)
-	},
-
-
-	beforeDestroy () {
-		this.socket.close()
-	}
 }

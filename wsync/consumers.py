@@ -3,14 +3,11 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save, post_delete
 from django.conf import settings
-import jwt
 
 sync_models = {}
 
 
 class WSyncConsumer(JsonWebsocketConsumer):
-	user = None
-
 	def reply(self, msg_id, data=None, error=None):
 		"""Simple wrapper to send a JSON reply in the correct format."""
 
@@ -33,6 +30,15 @@ class WSyncConsumer(JsonWebsocketConsumer):
 		print('Stream callback for {}'.format(sender))
 		self.stream([sender])
 
+	def start_sync(self):
+		"""Starts synchronization of models and sends initial stream to client."""
+
+		for model in sync_models.keys():
+			post_save.connect(self.stream_callback, sender=model, weak=False)
+			post_delete.connect(self.stream_callback, sender=model, weak=False)
+
+		self.stream(sync_models.keys())
+
 	def connect(self):
 		"""Handles new client connections."""
 
@@ -45,53 +51,6 @@ class WSyncConsumer(JsonWebsocketConsumer):
 		for model in sync_models.keys():
 			post_save.disconnect(self.stream_callback, sender=model)
 			post_delete.disconnect(self.stream_callback, sender=model)
-
-	def start_sync(self):
-		"""Starts synchronization of models and sends initial stream to client."""
-
-		for model in sync_models.keys():
-			post_save.connect(self.stream_callback, sender=model, weak=False)
-			post_delete.connect(self.stream_callback, sender=model, weak=False)
-
-		self.stream(sync_models.keys())
-
-	def login(self, msg_id, data):
-		"""Login to obtain a new token."""
-		if not data or not ('username' in data and 'password' in data):
-			self.error(msg_id, 'Missing fields')
-			return
-
-		print('Logging in as {}'.format(data['username']))
-		user = authenticate(username=data['username'], password=data['password'])
-
-		if not user:
-			return self.reply(msg_id, error='Invalid login credentials')
-
-		self.user = user
-		payload = {
-			'uid': user.id,
-		}
-
-		token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256').decode('utf-8')
-		self.reply(msg_id, {'token': token})
-		self.start_sync()
-
-	def auth(self, msg_id, data):
-		'''
-		Re-authenticate with a previously obtained token
-		'''
-
-		if not data or 'token' not in data:
-			return self.reply(msg_id, error='Missing fields')
-
-		token_data = jwt.decode(data['token'].encode('utf-8'), settings.SECRET_KEY, algorithm='HS256')
-
-		if 'uid' not in token_data:
-			return self.reply(msg_id, error='Invalid token')
-
-		self.user = User.objects.get(id=token_data['uid'])
-		self.reply(msg_id)
-		self.start_sync()
 
 	def edit(self, msg_id, data):
 		print('Editing: {}'.format(data))
@@ -117,14 +76,9 @@ class WSyncConsumer(JsonWebsocketConsumer):
 		msg_id = message['id']
 
 		commands = {
-			'login': self.login,
-			'auth': self.auth,
 			'edit': self.edit,
 			'delete': self.delete,
 		}
-
-		if not self.user and cmd not in ('login', 'auth'):
-			return self.reply(msg_id, error='Not authenticated')
 
 		if cmd not in commands:
 			print('invalid command', cmd)

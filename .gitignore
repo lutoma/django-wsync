@@ -105,3 +105,8 @@ venv.bak/
 
 Pipfile
 Pipfile.lock
+node_modules
+yarn.lock
+yarn-error.log
+dist
+wsync/static/
